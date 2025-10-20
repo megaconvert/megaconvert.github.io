@@ -6,9 +6,7 @@
     <title>Universal File Converter & Merger</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Updated Tesseract.js to latest version for better language support -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- Updated PDF.js to latest version -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
     <style>
         * {
@@ -363,71 +361,10 @@
                     </optgroup>
                 </select>
             </div>
-            <!-- NEW: OCR Language Selector -->
             <div class="format-selector">
                 <label for="ocrLanguage">OCR Language (for images):</label>
                 <select id="ocrLanguage">
-                    <option value="eng">English</option>
-                    <option value="afr">Afrikaans</option>
-                    <option value="ara">Arabic</option>
-                    <option value="aze">Azerbaijani</option>
-                    <option value="bel">Belarusian</option>
-                    <option value="ben">Bengali</option>
-                    <option value="bul">Bulgarian</option>
-                    <option value="cat">Catalan</option>
-                    <option value="ces">Czech</option>
-                    <option value="chi_sim">Chinese (Simplified)</option>
-                    <option value="chi_tra">Chinese (Traditional)</option>
-                    <option value="chr">Cherokee</option>
-                    <option value="dan">Danish</option>
-                    <option value="deu">German</option>
-                    <option value="ell">Greek</option>
-                    <option value="epo">Esperanto</option>
-                    <option value="est">Estonian</option>
-                    <option value="eus">Basque</option>
-                    <option value="fin">Finnish</option>
-                    <option value="fra">French</option>
-                    <option value="frk">German (Fraktur)</option>
-                    <option value="gle">Irish</option>
-                    <option value="glg">Galician</option>
-                    <option value="heb">Hebrew</option>
-                    <option value="hin">Hindi</option>
-                    <option value="hrv">Croatian</option>
-                    <option value="hun">Hungarian</option>
-                    <option value="ind">Indonesian</option>
-                    <option value="isl">Icelandic</option>
-                    <option value="ita">Italian</option>
-                    <option value="jpn">Japanese</option>
-                    <option value="kan">Kannada</option>
-                    <option value="kor">Korean</option>
-                    <option value="lav">Latvian</option>
-                    <option value="lit">Lithuanian</option>
-                    <option value="mal">Malayalam</option>
-                    <option value="mar">Marathi</option>
-                    <option value="mkd">Macedonian</option>
-                    <option value="mlt">Maltese</option>
-                    <option value="msa">Malay</option>
-                    <option value="nld">Dutch</option>
-                    <option value="nor">Norwegian</option>
-                    <option value="pol">Polish</option>
-                    <option value="por">Portuguese</option>
-                    <option value="ron">Romanian</option>
-                    <option value="rus">Russian</option>
-                    <option value="slk">Slovak</option>
-                    <option value="slv">Slovenian</option>
-                    <option value="spa">Spanish</option>
-                    <option value="sqi">Albanian</option>
-                    <option value="srp">Serbian</option>
-                    <option value="swa">Swahili</option>
-                    <option value="swe">Swedish</option>
-                    <option value="tam">Tamil</option>
-                    <option value="tel">Telugu</option>
-                    <option value="tgl">Tagalog</option>
-                    <option value="tha">Thai</option>
-                    <option value="tur">Turkish</option>
-                    <option value="ukr">Ukrainian</option>
-                    <option value="vie">Vietnamese</option>
-                    <!-- Add more languages as needed from Tesseract docs -->
+                    <!-- Languages will be populated by JavaScript -->
                 </select>
             </div>
         </div>
@@ -476,7 +413,7 @@
     </div>
 
     <script>
-        // Set up PDF.js worker using the updated library path
+        // Set up PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
 
         const uploadArea = document.getElementById('uploadArea');
@@ -489,7 +426,48 @@
         const outputFormat = document.getElementById('outputFormat');
         const mergeBtn = document.getElementById('mergeBtn');
         const convertBtn = document.getElementById('convertBtn');
-        const ocrLanguageSelect = document.getElementById('ocrLanguage'); // Get the new language selector
+        const ocrLanguageSelect = document.getElementById('ocrLanguage');
+
+        // NEW: Complete list of Tesseract.js languages
+        const TESSERACT_LANGUAGES = {
+            'afr': 'Afrikaans', 'amh': 'Amharic', 'ara': 'Arabic', 'asm': 'Assamese', 'aze': 'Azerbaijani',
+            'aze_cyrl': 'Azerbaijani - Cyrillic', 'bel': 'Belarusian', 'ben': 'Bengali', 'bod': 'Tibetan',
+            'bos': 'Bosnian', 'bre': 'Breton', 'bul': 'Bulgarian', 'cat': 'Catalan; Valencian', 'ceb': 'Cebuano',
+            'ces': 'Czech', 'chi_sim': 'Chinese - Simplified', 'chi_tra': 'Chinese - Traditional', 'chr': 'Cherokee',
+            'cos': 'Corsican', 'cym': 'Welsh', 'dan': 'Danish', 'deu': 'German', 'dzo': 'Dzongkha',
+            'ell': 'Greek, Modern (1453-)', 'eng': 'English', 'enm': 'English, Middle (1100-1500)', 'epo': 'Esperanto',
+            'est': 'Estonian', 'eus': 'Basque', 'fao': 'Faroese', 'fas': 'Persian', 'fil': 'Filipino', 'fin': 'Finnish',
+            'fra': 'French', 'frk': 'German Fraktur', 'frm': 'French, Middle (ca. 1400-1600)', 'fry': 'Western Frisian',
+            'gla': 'Scottish Gaelic', 'gle': 'Irish', 'glg': 'Galician', 'grc': 'Greek, Ancient (-1453)', 'guj': 'Gujarati',
+            'hat': 'Haitian; Haitian Creole', 'heb': 'Hebrew', 'hin': 'Hindi', 'hrv': 'Croatian', 'hun': 'Hungarian',
+            'hye': 'Armenian', 'iku': 'Inuktitut', 'ind': 'Indonesian', 'isl': 'Icelandic', 'ita': 'Italian',
+            'ita_old': 'Italian - Old', 'jav': 'Javanese', 'jpn': 'Japanese', 'kan': 'Kannada', 'kat': 'Georgian',
+            'kat_old': 'Georgian - Old', 'kaz': 'Kazakh', 'khm': 'Central Khmer', 'kir': 'Kirghiz; Kyrgyz', 'kmr': 'Kurmanji',
+            'kor': 'Korean', 'kor_vert': 'Korean (vertical)', 'lao': 'Lao', 'lat': 'Latin', 'lav': 'Latvian',
+            'lit': 'Lithuanian', 'ltz': 'Luxembourgish', 'mal': 'Malayalam', 'mar': 'Marathi', 'mkd': 'Macedonian',
+            'mlt': 'Maltese', 'mon': 'Mongolian', 'mri': 'Maori', 'msa': 'Malay', 'mya': 'Burmese', 'nep': 'Nepali',
+            'nld': 'Dutch; Flemish', 'nor': 'Norwegian', 'oci': 'Occitan (post 1500)', 'ori': 'Oriya', 'pan': 'Panjabi; Punjabi',
+            'pol': 'Polish', 'por': 'Portuguese', 'pus': 'Pushto; Pashto', 'que': 'Quechua', 'ron': 'Romanian; Moldavian',
+            'rus': 'Russian', 'san': 'Sanskrit', 'sin': 'Sinhala; Sinhalese', 'slk': 'Slovak', 'slv': 'Slovenian',
+            'snd': 'Sindhi', 'spa': 'Spanish; Castilian', 'spa_old': 'Spanish; Castilian - Old', 'sqi': 'Albanian',
+            'srp': 'Serbian', 'srp_latn': 'Serbian - Latin', 'sun': 'Sundanese', 'swa': 'Swahili', 'swe': 'Swedish',
+            'syr': 'Syriac', 'tam': 'Tamil', 'tat': 'Tatar', 'tel': 'Telugu', 'tgk': 'Tajik', 'tgl': 'Tagalog',
+            'tha': 'Thai', 'tir': 'Tigrinya', 'ton': 'Tonga', 'tur': 'Turkish', 'uig': 'Uighur; Uyghur', 'ukr': 'Ukrainian',
+            'urd': 'Urdu', 'uzb': 'Uzbek', 'uzb_cyrl': 'Uzbek - Cyrillic', 'vie': 'Vietnamese', 'yid': 'Yiddish', 'yor': 'Yoruba'
+        };
+
+        // NEW: Dynamically populate the language dropdown
+        function populateLanguageDropdown() {
+            for (const code in TESSERACT_LANGUAGES) {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = TESSERACT_LANGUAGES[code];
+                ocrLanguageSelect.appendChild(option);
+            }
+            ocrLanguageSelect.value = 'eng'; // Set English as default
+        }
+        populateLanguageDropdown();
+
 
         let selectedFiles = [];
         let processingMode = 'merge'; // 'merge' or 'convert'
@@ -534,23 +512,16 @@
         function getFileType(filename) {
             const ext = filename.toLowerCase().substring(filename.lastIndexOf('.') + 1);
             const types = {
-                // eBooks
                 'epub': 'ebook', 'mobi': 'ebook', 'azw': 'ebook', 'azw3': 'ebook',
-                // Documents
                 'pdf': 'document', 'doc': 'document', 'docx': 'document', 'txt': 'document', 
                 'rtf': 'document', 'odt': 'document', 'html': 'document', 'htm': 'document',
                 'xml': 'document', 'md': 'document',
-                // Images
                 'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image', 
                 'bmp': 'image', 'webp': 'image', 'svg': 'image', 'tiff': 'image', 'tif': 'image',
-                // Audio
                 'mp3': 'audio', 'wav': 'audio', 'ogg': 'audio', 'm4a': 'audio', 
                 'flac': 'audio', 'aac': 'audio', 'wma': 'audio',
-                // Video
                 'mp4': 'video', 'webm': 'video', 'avi': 'video', 'mov': 'video',
-                // Archives
                 'zip': 'archive', 'rar': 'archive', 'tar': 'archive', '7z': 'archive',
-                // Data
                 'json': 'data', 'csv': 'data', 'yaml': 'data', 'yml': 'data'
             };
             return types[ext] || 'unknown';
@@ -648,9 +619,9 @@
         }
 
         async function extractTextFromImage(file) {
-            showStatus('Running OCR on image... This may take a moment.', 'processing');
-            const selectedLang = ocrLanguageSelect.value; // Get selected language
-            const result = await Tesseract.recognize(file, selectedLang, { // Use selected language
+            const selectedLang = ocrLanguageSelect.value;
+            showStatus(`Running OCR with ${TESSERACT_LANGUAGES[selectedLang]}... This may take a moment.`, 'processing');
+            const result = await Tesseract.recognize(file, selectedLang, {
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         updateProgress(m.progress * 100);
@@ -706,7 +677,7 @@
                 switch(type) {
                     case 'ebook':
                         if (ext === 'epub') return await extractTextFromEpub(file);
-                        return await extractTextFromTxt(file); // Fallback for MOBI/AZW
+                        return await extractTextFromTxt(file);
                     case 'document':
                         if (ext === 'pdf') return await extractTextFromPdf(file);
                         if (ext === 'html' || ext === 'htm') return await extractTextFromHtml(file);
@@ -744,11 +715,8 @@
                         ctx.drawImage(img, 0, 0);
                         
                         const mimeTypes = {
-                            'png': 'image/png',
-                            'jpg': 'image/jpeg',
-                            'jpeg': 'image/jpeg',
-                            'webp': 'image/webp',
-                            'bmp': 'image/bmp'
+                            'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+                            'webp': 'image/webp', 'bmp': 'image/bmp'
                         };
                         
                         canvas.toBlob((blob) => {
@@ -766,8 +734,6 @@
         // ==================== AUDIO CONVERSION ====================
         
         async function convertAudio(file, targetFormat) {
-            // Browser-based audio conversion is limited
-            // This is a placeholder - real conversion would need WebAssembly (ffmpeg.wasm)
             return new Blob([await file.arrayBuffer()], { type: `audio/${targetFormat}` });
         }
 
@@ -776,96 +742,42 @@
         function generateTxt(contents) {
             let output = '';
             contents.forEach(({ filename, content }) => {
-                output += `\n\n${'='.repeat(80)}\n`;
-                output += `FILE: ${filename}\n`;
-                output += `${'='.repeat(80)}\n\n`;
-                output += content + '\n\n';
+                output += `\n\n${'='.repeat(80)}\nFILE: ${filename}\n${'='.repeat(80)}\n\n${content}\n\n`;
             });
             return new Blob([output], { type: 'text/plain' });
         }
 
         function generateHtml(contents) {
-            let html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Converted Files</title>
-    <style>
-        body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
-        .file-section { border-top: 3px solid #333; margin: 40px 0; padding-top: 20px; }
-        .file-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; }
-        .file-content { text-align: justify; white-space: pre-wrap; }
-    </style>
-</head>
-<body>
-    <h1>Converted Files</h1>
-`;
+            let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Converted Files</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6;color:#333;}.file-section{border-top:3px solid #333;margin:40px 0;padding-top:20px;}.file-title{font-size:1.5em;font-weight:bold;margin-bottom:20px;}.file-content{text-align:justify;white-space:pre-wrap;}</style></head><body><h1>Converted Files</h1>`;
             contents.forEach(({ filename, content }) => {
-                html += `    <div class="file-section">
-        <div class="file-title">${filename}</div>
-        <div class="file-content">${content}</div>
-    </div>\n`;
+                html += `<div class="file-section"><div class="file-title">${filename}</div><div class="file-content">${content}</div></div>\n`;
             });
-            html += `</body>\n</html>`;
+            html += `</body></html>`;
             return new Blob([html], { type: 'text/html' });
         }
 
         async function generateEpub(contents) {
             const zip = new JSZip();
             zip.file('mimetype', 'application/epub+zip');
-            
-            zip.folder('META-INF').file('container.xml', `<?xml version="1.0"?>
-<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-  <rootfiles>
-    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-  </rootfiles>
-</container>`);
-            
+            zip.folder('META-INF').file('container.xml', `<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`);
             const oebps = zip.folder('OEBPS');
             let manifestItems = '';
             let spineItems = '';
-            
             contents.forEach((_, index) => {
-                manifestItems += `    <item id="chapter${index}" href="chapter${index}.xhtml" media-type="application/xhtml+xml"/>\n`;
-                spineItems += `    <itemref idref="chapter${index}"/>\n`;
+                manifestItems += `<item id="chapter${index}" href="chapter${index}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                spineItems += `<itemref idref="chapter${index}"/>\n`;
             });
-            
-            oebps.file('content.opf', `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="uid">converted-files-${Date.now()}</dc:identifier>
-    <dc:title>Converted Files</dc:title>
-    <dc:language>en</dc:language>
-    <dc:creator>Noar A.</dc:creator>
-  </metadata>
-  <manifest>
-${manifestItems}  </manifest>
-  <spine>
-${spineItems}  </spine>
-</package>`);
-            
+            oebps.file('content.opf', `<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">converted-files-${Date.now()}</dc:identifier><dc:title>Converted Files</dc:title><dc:language>en</dc:language></metadata><manifest>${manifestItems}</manifest><spine>${spineItems}</spine></package>`);
             contents.forEach(({ filename, content }, index) => {
-                const chapterContent = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>${filename}</title></head>
-<body>
-  <h1>${filename}</h1>
-  <pre>${content}</pre>
-</body>
-</html>`;
+                const chapterContent = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${filename}</title></head><body><h1>${filename}</h1><pre>${content}</pre></body></html>`;
                 oebps.file(`chapter${index}.xhtml`, chapterContent);
             });
-            
             return await zip.generateAsync({ type: 'blob' });
         }
 
         function generateJson(contents) {
             const data = {};
-            contents.forEach(({ filename, content }) => {
-                data[filename] = content;
-            });
+            contents.forEach(({ filename, content }) => { data[filename] = content; });
             return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         }
 
@@ -880,9 +792,7 @@ ${spineItems}  </spine>
 
         async function generateZip(contents) {
             const zip = new JSZip();
-            contents.forEach(({ filename, content }) => {
-                zip.file(filename, content);
-            });
+            contents.forEach(({ filename, content }) => { zip.file(filename, content); });
             return await zip.generateAsync({ type: 'blob' });
         }
 
@@ -898,132 +808,71 @@ ${spineItems}  </spine>
 
             try {
                 let processedContents = [];
-                
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
                     showStatus(`Processing: ${file.name} (${i + 1}/${selectedFiles.length})`, 'processing');
                     updateProgress(((i) / selectedFiles.length) * 100);
-                    
                     const fileType = getFileType(file.name);
                     let content;
-                    
-                    // Image conversion
                     if (fileType === 'image' && ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'].includes(format)) {
                         content = await convertImage(file, format);
-                    }
-                    // Audio conversion (limited)
-                    else if (fileType === 'audio' && ['mp3', 'wav', 'ogg', 'm4a'].includes(format)) {
+                    } else if (fileType === 'audio' && ['mp3', 'wav', 'ogg', 'm4a'].includes(format)) {
                         content = await convertAudio(file, format);
-                    }
-                    // Text extraction for text-based outputs
-                    else if (['txt', 'html', 'epub', 'pdf', 'md', 'json', 'csv', 'xml'].includes(format)) {
+                    } else if (['txt', 'html', 'epub', 'pdf', 'md', 'json', 'csv', 'xml'].includes(format)) {
+                        content = await extractFromFile(file);
+                    } else {
                         content = await extractFromFile(file);
                     }
-                    // Default: try to extract text
-                    else {
-                        content = await extractFromFile(file);
-                    }
-                    
                     processedContents.push({ filename: file.name, content: content });
                 }
 
                 updateProgress(100);
                 showStatus('Generating output file...', 'processing');
                 
-                let outputBlob, outputFilename;
-                
-                // Generate output based on format
                 if (processingMode === 'merge') {
-                    // Merge mode - combine all files
+                    let outputBlob, outputFilename;
                     switch(format) {
-                        case 'txt':
-                            outputBlob = generateTxt(processedContents);
-                            outputFilename = 'merged_files.txt';
-                            break;
-                        case 'html':
-                            outputBlob = generateHtml(processedContents);
-                            outputFilename = 'merged_files.html';
-                            break;
-                        case 'epub':
-                            outputBlob = await generateEpub(processedContents);
-                            outputFilename = 'merged_files.epub';
-                            break;
-                        case 'json':
-                            outputBlob = generateJson(processedContents);
-                            outputFilename = 'merged_files.json';
-                            break;
-                        case 'csv':
-                            outputBlob = generateCsv(processedContents);
-                            outputFilename = 'merged_files.csv';
-                            break;
-                        case 'zip':
-                            outputBlob = await generateZip(processedContents);
-                            outputFilename = 'merged_files.zip';
-                            break;
+                        case 'txt': outputBlob = generateTxt(processedContents); outputFilename = 'merged_files.txt'; break;
+                        case 'html': outputBlob = generateHtml(processedContents); outputFilename = 'merged_files.html'; break;
+                        case 'epub': outputBlob = await generateEpub(processedContents); outputFilename = 'merged_files.epub'; break;
+                        case 'json': outputBlob = generateJson(processedContents); outputFilename = 'merged_files.json'; break;
+                        case 'csv': outputBlob = generateCsv(processedContents); outputFilename = 'merged_files.csv'; break;
+                        case 'zip': outputBlob = await generateZip(processedContents); outputFilename = 'merged_files.zip'; break;
                         case 'md':
                             let markdown = '# Merged Files\n\n';
-                            processedContents.forEach(({ filename, content }) => {
-                                markdown += `## ${filename}\n\n${content}\n\n---\n\n`;
-                            });
-                            outputBlob = new Blob([markdown], { type: 'text/markdown' });
-                            outputFilename = 'merged_files.md';
-                            break;
+                            processedContents.forEach(({ filename, content }) => { markdown += `## ${filename}\n\n${content}\n\n---\n\n`; });
+                            outputBlob = new Blob([markdown], { type: 'text/markdown' }); outputFilename = 'merged_files.md'; break;
                         case 'xml':
                             let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<files>\n';
-                            processedContents.forEach(({ filename, content }) => {
-                                xml += `  <file name="${filename}">\n    <content><![CDATA[${content}]]></content>\n  </file>\n`;
-                            });
+                            processedContents.forEach(({ filename, content }) => { xml += `  <file name="${filename}">\n    <content><![CDATA[${content}]]></content>\n  </file>\n`; });
                             xml += '</files>';
-                            outputBlob = new Blob([xml], { type: 'application/xml' });
-                            outputFilename = 'merged_files.xml';
-                            break;
+                            outputBlob = new Blob([xml], { type: 'application/xml' }); outputFilename = 'merged_files.xml'; break;
                         case 'pdf':
-                            // PDF generation would require a library like jsPDF
-                            outputBlob = generateHtml(processedContents);
-                            outputFilename = 'merged_files.html';
-                            showStatus('⚠️ PDF generation not fully supported. Generated HTML instead.', 'processing');
-                            break;
-                        default:
-                            outputBlob = generateTxt(processedContents);
-                            outputFilename = 'merged_files.txt';
+                            outputBlob = generateHtml(processedContents); outputFilename = 'merged_files.html';
+                            showStatus('⚠️ PDF generation not fully supported. Generated HTML instead.', 'processing'); break;
+                        default: outputBlob = generateTxt(processedContents); outputFilename = 'merged_files.txt';
                     }
-                    
-                    // Download merged file
                     downloadBlob(outputBlob, outputFilename);
                     showStatus(`✓ Success! Merged file downloaded as ${outputFilename}`, 'success');
-                    
                 } else {
-                    // Convert mode - individual files
                     for (let i = 0; i < processedContents.length; i++) {
                         const { filename, content } = processedContents[i];
                         const baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
-                        
                         let blob;
                         if (content instanceof Blob) {
                             blob = content;
                         } else {
-                            // Text content - wrap in appropriate format
-                            if (format === 'html') {
-                                blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title></head><body><pre>${content}</pre></body></html>`], { type: 'text/html' });
-                            } else if (format === 'json') {
-                                blob = new Blob([JSON.stringify({ filename: filename, content: content }, null, 2)], { type: 'application/json' });
-                            } else if (format === 'xml') {
-                                blob = new Blob([`<?xml version="1.0"?><file name="${filename}"><content><![CDATA[${content}]]></content></file>`], { type: 'application/xml' });
-                            } else if (format === 'md') {
-                                blob = new Blob([`# ${filename}\n\n${content}`], { type: 'text/markdown' });
-                            } else {
-                                blob = new Blob([content], { type: 'text/plain' });
-                            }
+                            if (format === 'html') blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title></head><body><pre>${content}</pre></body></html>`], { type: 'text/html' });
+                            else if (format === 'json') blob = new Blob([JSON.stringify({ filename: filename, content: content }, null, 2)], { type: 'application/json' });
+                            else if (format === 'xml') blob = new Blob([`<?xml version="1.0"?><file name="${filename}"><content><![CDATA[${content}]]></content></file>`], { type: 'application/xml' });
+                            else if (format === 'md') blob = new Blob([`# ${filename}\n\n${content}`], { type: 'text/markdown' });
+                            else blob = new Blob([content], { type: 'text/plain' });
                         }
-                        
                         downloadBlob(blob, `${baseName}.${format}`);
                     }
-                    
                     showStatus(`✓ Success! ${processedContents.length} file(s) converted and downloaded.`, 'success');
                 }
-                
                 hideProgress();
-                
             } catch (error) {
                 console.error(error);
                 showStatus(`Error: ${error.message}. Some formats may not be fully supported.`, 'error');
@@ -1043,14 +892,6 @@ ${spineItems}  </spine>
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-
-        // ==================== ADDITIONAL CONVERTERS ====================
-        
-        // SVG to other formats would require rendering
-        // Video processing would require ffmpeg.wasm (heavy library)
-        // DOCX generation would require docx.js
-        // Advanced PDF generation would require jsPDF or pdf-lib
-        
     </script>
 </body>
 </html>
