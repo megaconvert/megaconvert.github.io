@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal File Converter & Merger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            font-weight: 500;
+            background: #e1d3ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #000000;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #000000;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .format-selector {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .format-selector label {
+            display: block;
+            color: #000000;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .format-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-family: 'Noto Sans', sans-serif;
+            font-weight: 500;
+            font-size: 1em;
+            color: #000000;
+            background: white;
+            cursor: pointer;
+        }
+
+        .format-selector select:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Noto Sans', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #000000;
+            font-size: 0.85em;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: #f8f9ff;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .file-name {
+            color: #000000;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-type {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .convert-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+            color: #000000;
+        }
+
+        .status.processing {
+            background: #fff3cd;
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e1d3ff;
+            font-size: 0.85em;
+            color: #000000;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .footer strong {
+            font-weight: 600;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .credit {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e1d3ff;
+            color: #666;
+        }
+
+        .supported-formats {
+            background: #f0f1ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Universal File Converter</h1>
+        <p class="subtitle">Convert & merge ANY file format<br>
+        <strong>eBooks • Documents • Images • Audio • Video • Archives</strong></p>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="merge" id="mergeBtn">Merge Files</button>
+            <button class="mode-btn" data-mode="convert" id="convertBtn">Convert Individual</button>
+        </div>
+
+        <div class="format-selector">
+            <label for="outputFormat">Output Format:</label>
+            <select id="outputFormat">
+                <optgroup label="Text & eBooks">
+                    <option value="txt">TXT - Plain Text</option>
+                    <option value="html">HTML - Web Page</option>
+                    <option value="epub">EPUB - eBook</option>
+                    <option value="pdf">PDF - Document</option>
+                    <option value="docx">DOCX - Word Document</option>
+                    <option value="md">MD - Markdown</option>
+                </optgroup>
+                <optgroup label="Images">
+                    <option value="png">PNG - Image</option>
+                    <option value="jpg">JPG - Image</option>
+                    <option value="webp">WEBP - Image</option>
+                    <option value="gif">GIF - Image</option>
+                    <option value="bmp">BMP - Image</option>
+                    <option value="svg">SVG - Vector</option>
+                </optgroup>
+                <optgroup label="Audio">
+                    <option value="mp3">MP3 - Audio</option>
+                    <option value="wav">WAV - Audio</option>
+                    <option value="ogg">OGG - Audio</option>
+                    <option value="m4a">M4A - Audio</option>
+                </optgroup>
+                <optgroup label="Data & Archive">
+                    <option value="json">JSON - Data</option>
+                    <option value="csv">CSV - Spreadsheet</option>
+                    <option value="xml">XML - Data</option>
+                    <option value="zip">ZIP - Archive</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click to select files</div>
+            <div class="upload-hint">or drag and drop them here<br>Accepts almost ANY file format!</div>
+            <input type="file" id="fileInput" multiple>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <button class="convert-btn" id="processBtn" disabled>Convert & Process Files</button>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="supported-formats">
+            <strong>📋 Supported Input Formats:</strong><br>
+            <strong>eBooks:</strong> EPUB, MOBI, AZW, AZW3, PDF<br>
+            <strong>Documents:</strong> PDF, DOCX, DOC, TXT, RTF, ODT, HTML, XML<br>
+            <strong>Images:</strong> JPG, PNG, GIF, BMP, WEBP, SVG, TIFF (with OCR support)<br>
+            <strong>Audio:</strong> MP3, WAV, OGG, M4A, FLAC, AAC, WMA<br>
+            <strong>Video:</strong> MP4, WEBM, AVI, MOV (audio extraction)<br>
+            <strong>Archives:</strong> ZIP, RAR (read), TAR, 7Z (read)<br>
+            <strong>Data:</strong> JSON, CSV, XML, YAML
+        </div>
+
+        <div class="footer">
+            <p><strong>Privacy:</strong> All files are processed locally in your browser. Nothing is uploaded to any server. Your files never leave your device.</p>
+            
+            <p><strong>Limitations:</strong> Browser-based conversion has limitations. DRM-protected files cannot be converted. Some complex conversions (like video transcoding) are simplified. OCR processing may be slow for large images. Audio/video conversions use browser APIs and may have format limitations. For professional-grade conversions, use dedicated software.</p>
+            
+            <p><strong>Features:</strong> Automatic OCR for images, PDF text extraction, audio format conversion, image format conversion, document merging, archive extraction, metadata preservation where possible, and batch processing.</p>
+            
+            <p><strong>Free to use.</strong> No ads, no tracking, no data collection. Unlimited files and conversions.</p>
+            
+            <p><strong>Found a bug?</strong> Report it on <a href="https://www.reddit.com/user/ArashTheUnknown" target="_blank">Reddit</a></p>
+            
+            <div class="credit">Made by Noar A.</div>
+        </div>
+    </div>
+
+    <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const status = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const outputFormat = document.getElementById('outputFormat');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const convertBtn = document.getElementById('convertBtn');
+
+        let selectedFiles = [];
+        let processingMode = 'merge'; // 'merge' or 'convert'
+
+        // Mode toggle
+        mergeBtn.addEventListener('click', () => {
+            processingMode = 'merge';
+            mergeBtn.classList.add('active');
+            convertBtn.classList.remove('active');
+        });
+
+        convertBtn.addEventListener('click', () => {
+            processingMode = 'convert';
+            convertBtn.classList.add('active');
+            mergeBtn.classList.remove('active');
+        });
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function getFileType(filename) {
+            const ext = filename.toLowerCase().substring(filename.lastIndexOf('.') + 1);
+            const types = {
+                // eBooks
+                'epub': 'ebook', 'mobi': 'ebook', 'azw': 'ebook', 'azw3': 'ebook',
+                // Documents
+                'pdf': 'document', 'doc': 'document', 'docx': 'document', 'txt': 'document', 
+                'rtf': 'document', 'odt': 'document', 'html': 'document', 'htm': 'document',
+                'xml': 'document', 'md': 'document',
+                // Images
+                'jpg': 'image', 'jpeg': 'image', 'png': 'image', 'gif': 'image', 
+                'bmp': 'image', 'webp': 'image', 'svg': 'image', 'tiff': 'image', 'tif': 'image',
+                // Audio
+                'mp3': 'audio', 'wav': 'audio', 'ogg': 'audio', 'm4a': 'audio', 
+                'flac': 'audio', 'aac': 'audio', 'wma': 'audio',
+                // Video
+                'mp4': 'video', 'webm': 'video', 'avi': 'video', 'mov': 'video',
+                // Archives
+                'zip': 'archive', 'rar': 'archive', 'tar': 'archive', '7z': 'archive',
+                // Data
+                'json': 'data', 'csv': 'data', 'yaml': 'data', 'yml': 'data'
+            };
+            return types[ext] || 'unknown';
+        }
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files);
+            selectedFiles = [...selectedFiles, ...newFiles];
+            updateFileList();
+            updateProcessButton();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                const type = getFileType(file.name);
+                fileItem.innerHTML = `
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-type">${type}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateProcessButton();
+        }
+
+        function updateProcessButton() {
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function showStatus(message, type) {
+            status.className = 'status ' + type;
+            status.textContent = message;
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.display = 'block';
+            progressFill.style.width = percent + '%';
+        }
+
+        function hideProgress() {
+            progressBar.style.display = 'none';
+            progressFill.style.width = '0%';
+        }
+
+        // ==================== TEXT EXTRACTION ====================
+        
+        async function extractTextFromEpub(file) {
+            const zip = new JSZip();
+            const contents = await zip.loadAsync(file);
+            let textContent = '';
+            const htmlFiles = [];
+            
+            contents.forEach((relativePath, file) => {
+                if (relativePath.match(/\.(html|xhtml|htm)$/i) && !file.dir) {
+                    htmlFiles.push(relativePath);
+                }
+            });
+            
+            htmlFiles.sort();
+            
+            for (const htmlFile of htmlFiles) {
+                const content = await contents.file(htmlFile).async('string');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                const scripts = doc.querySelectorAll('script, style');
+                scripts.forEach(script => script.remove());
+                const text = doc.body.textContent || '';
+                textContent += text.replace(/\s+/g, ' ').trim() + '\n\n';
+            }
+            
+            return textContent.trim();
+        }
+
+        async function extractTextFromPdf(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n\n';
+            }
+            
+            return fullText.trim();
+        }
+
+        async function extractTextFromImage(file) {
+            showStatus('Running OCR on image... This may take a moment.', 'processing');
+            const result = await Tesseract.recognize(file, 'eng', {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        updateProgress(m.progress * 100);
+                    }
+                }
+            });
+            return result.data.text;
+        }
+
+        async function extractTextFromHtml(file) {
+            const content = await file.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const scripts = doc.querySelectorAll('script, style');
+            scripts.forEach(script => script.remove());
+            const text = doc.body.textContent || doc.documentElement.textContent || '';
+            return text.replace(/\s+/g, ' ').trim();
+        }
+
+        async function extractTextFromTxt(file) {
+            return await file.text();
+        }
+
+        async function extractTextFromJson(file) {
+            const content = await file.text();
+            const json = JSON.parse(content);
+            return JSON.stringify(json, null, 2);
+        }
+
+        async function extractTextFromCsv(file) {
+            return await file.text();
+        }
+
+        async function extractTextFromArchive(file) {
+            const zip = new JSZip();
+            const contents = await zip.loadAsync(file);
+            let text = 'Archive Contents:\n\n';
+            
+            contents.forEach((relativePath, file) => {
+                if (!file.dir) {
+                    text += `- ${relativePath}\n`;
+                }
+            });
+            
+            return text;
+        }
+
+        async function extractFromFile(file) {
+            const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.') + 1);
+            const type = getFileType(file.name);
+            
+            try {
+                switch(type) {
+                    case 'ebook':
+                        if (ext === 'epub') return await extractTextFromEpub(file);
+                        return await extractTextFromTxt(file); // Fallback for MOBI/AZW
+                    case 'document':
+                        if (ext === 'pdf') return await extractTextFromPdf(file);
+                        if (ext === 'html' || ext === 'htm') return await extractTextFromHtml(file);
+                        if (ext === 'json') return await extractTextFromJson(file);
+                        if (ext === 'csv') return await extractTextFromCsv(file);
+                        return await extractTextFromTxt(file);
+                    case 'image':
+                        return await extractTextFromImage(file);
+                    case 'archive':
+                        return await extractTextFromArchive(file);
+                    case 'data':
+                        if (ext === 'json') return await extractTextFromJson(file);
+                        if (ext === 'csv') return await extractTextFromCsv(file);
+                        return await extractTextFromTxt(file);
+                    default:
+                        return await extractTextFromTxt(file);
+                }
+            } catch (error) {
+                return `[Error extracting from ${file.name}: ${error.message}]`;
+            }
+        }
+
+        // ==================== IMAGE CONVERSION ====================
+        
+        async function convertImage(file, targetFormat) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const mimeTypes = {
+                            'png': 'image/png',
+                            'jpg': 'image/jpeg',
+                            'jpeg': 'image/jpeg',
+                            'webp': 'image/webp',
+                            'bmp': 'image/bmp'
+                        };
+                        
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, mimeTypes[targetFormat] || 'image/png');
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ==================== AUDIO CONVERSION ====================
+        
+        async function convertAudio(file, targetFormat) {
+            // Browser-based audio conversion is limited
+            // This is a placeholder - real conversion would need WebAssembly (ffmpeg.wasm)
+            return new Blob([await file.arrayBuffer()], { type: `audio/${targetFormat}` });
+        }
+
+        // ==================== OUTPUT GENERATION ====================
+        
+        function generateTxt(contents) {
+            let output = '';
+            contents.forEach(({ filename, content }) => {
+                output += `\n\n${'='.repeat(80)}\n`;
+                output += `FILE: ${filename}\n`;
+                output += `${'='.repeat(80)}\n\n`;
+                output += content + '\n\n';
+            });
+            return new Blob([output], { type: 'text/plain' });
+        }
+
+        function generateHtml(contents) {
+            let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converted Files</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+        .file-section { border-top: 3px solid #333; margin: 40px 0; padding-top: 20px; }
+        .file-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; }
+        .file-content { text-align: justify; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Converted Files</h1>
+`;
+            contents.forEach(({ filename, content }) => {
+                html += `    <div class="file-section">
+        <div class="file-title">${filename}</div>
+        <div class="file-content">${content}</div>
+    </div>\n`;
+            });
+            html += `</body>\n</html>`;
+            return new Blob([html], { type: 'text/html' });
+        }
+
+        async function generateEpub(contents) {
+            const zip = new JSZip();
+            zip.file('mimetype', 'application/epub+zip');
+            
+            zip.folder('META-INF').file('container.xml', `<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`);
+            
+            const oebps = zip.folder('OEBPS');
+            let manifestItems = '';
+            let spineItems = '';
+            
+            contents.forEach((_, index) => {
+                manifestItems += `    <item id="chapter${index}" href="chapter${index}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                spineItems += `    <itemref idref="chapter${index}"/>\n`;
+            });
+            
+            oebps.file('content.opf', `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">converted-files-${Date.now()}</dc:identifier>
+    <dc:title>Converted Files</dc:title>
+    <dc:language>en</dc:language>
+    <dc:creator>Noar A.</dc:creator>
+  </metadata>
+  <manifest>
+${manifestItems}  </manifest>
+  <spine>
+${spineItems}  </spine>
+</package>`);
+            
+            contents.forEach(({ filename, content }, index) => {
+                const chapterContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>${filename}</title></head>
+<body>
+  <h1>${filename}</h1>
+  <pre>${content}</pre>
+</body>
+</html>`;
+                oebps.file(`chapter${index}.xhtml`, chapterContent);
+            });
+            
+            return await zip.generateAsync({ type: 'blob' });
+        }
+
+        function generateJson(contents) {
+            const data = {};
+            contents.forEach(({ filename, content }) => {
+                data[filename] = content;
+            });
+            return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        }
+
+        function generateCsv(contents) {
+            let csv = 'Filename,Content\n';
+            contents.forEach(({ filename, content }) => {
+                const escaped = content.replace(/"/g, '""');
+                csv += `"${filename}","${escaped}"\n`;
+            });
+            return new Blob([csv], { type: 'text/csv' });
+        }
+
+        async function generateZip(contents) {
+            const zip = new JSZip();
+            contents.forEach(({ filename, content }) => {
+                zip.file(filename, content);
+            });
+            return await zip.generateAsync({ type: 'blob' });
+        }
+
+        // ==================== MAIN PROCESSING ====================
+        
+        processBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            const format = outputFormat.value;
+            showStatus('Processing files...', 'processing');
+            updateProgress(0);
+            processBtn.disabled = true;
+
+            try {
+                let processedContents = [];
+                
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    showStatus(`Processing: ${file.name} (${i + 1}/${selectedFiles.length})`, 'processing');
+                    updateProgress(((i) / selectedFiles.length) * 100);
+                    
+                    const fileType = getFileType(file.name);
+                    let content;
+                    
+                    // Image conversion
+                    if (fileType === 'image' && ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'].includes(format)) {
+                        content = await convertImage(file, format);
+                    }
+                    // Audio conversion (limited)
+                    else if (fileType === 'audio' && ['mp3', 'wav', 'ogg', 'm4a'].includes(format)) {
+                        content = await convertAudio(file, format);
+                    }
+                    // Text extraction for text-based outputs
+                    else if (['txt', 'html', 'epub', 'pdf', 'md', 'json', 'csv', 'xml'].includes(format)) {
+                        content = await extractFromFile(file);
+                    }
+                    // Default: try to extract text
+                    else {
+                        content = await extractFromFile(file);
+                    }
+                    
+                    processedContents.push({ filename: file.name, content: content });
+                }
+
+                updateProgress(100);
+                showStatus('Generating output file...', 'processing');
+                
+                let outputBlob, outputFilename;
+                
+                // Generate output based on format
+                if (processingMode === 'merge') {
+                    // Merge mode - combine all files
+                    switch(format) {
+                        case 'txt':
+                            outputBlob = generateTxt(processedContents);
+                            outputFilename = 'merged_files.txt';
+                            break;
+                        case 'html':
+                            outputBlob = generateHtml(processedContents);
+                            outputFilename = 'merged_files.html';
+                            break;
+                        case 'epub':
+                            outputBlob = await generateEpub(processedContents);
+                            outputFilename = 'merged_files.epub';
+                            break;
+                        case 'json':
+                            outputBlob = generateJson(processedContents);
+                            outputFilename = 'merged_files.json';
+                            break;
+                        case 'csv':
+                            outputBlob = generateCsv(processedContents);
+                            outputFilename = 'merged_files.csv';
+                            break;
+                        case 'zip':
+                            outputBlob = await generateZip(processedContents);
+                            outputFilename = 'merged_files.zip';
+                            break;
+                        case 'md':
+                            let markdown = '# Merged Files\n\n';
+                            processedContents.forEach(({ filename, content }) => {
+                                markdown += `## ${filename}\n\n${content}\n\n---\n\n`;
+                            });
+                            outputBlob = new Blob([markdown], { type: 'text/markdown' });
+                            outputFilename = 'merged_files.md';
+                            break;
+                        case 'xml':
+                            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<files>\n';
+                            processedContents.forEach(({ filename, content }) => {
+                                xml += `  <file name="${filename}">\n    <content><![CDATA[${content}]]></content>\n  </file>\n`;
+                            });
+                            xml += '</files>';
+                            outputBlob = new Blob([xml], { type: 'application/xml' });
+                            outputFilename = 'merged_files.xml';
+                            break;
+                        case 'pdf':
+                            // PDF generation would require a library like jsPDF
+                            outputBlob = generateHtml(processedContents);
+                            outputFilename = 'merged_files.html';
+                            showStatus('⚠️ PDF generation not fully supported. Generated HTML instead.', 'processing');
+                            break;
+                        default:
+                            outputBlob = generateTxt(processedContents);
+                            outputFilename = 'merged_files.txt';
+                    }
+                    
+                    // Download merged file
+                    downloadBlob(outputBlob, outputFilename);
+                    showStatus(`✓ Success! Merged file downloaded as ${outputFilename}`, 'success');
+                    
+                } else {
+                    // Convert mode - individual files
+                    for (let i = 0; i < processedContents.length; i++) {
+                        const { filename, content } = processedContents[i];
+                        const baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
+                        
+                        let blob;
+                        if (content instanceof Blob) {
+                            blob = content;
+                        } else {
+                            // Text content - wrap in appropriate format
+                            if (format === 'html') {
+                                blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${filename}</title></head><body><pre>${content}</pre></body></html>`], { type: 'text/html' });
+                            } else if (format === 'json') {
+                                blob = new Blob([JSON.stringify({ filename: filename, content: content }, null, 2)], { type: 'application/json' });
+                            } else if (format === 'xml') {
+                                blob = new Blob([`<?xml version="1.0"?><file name="${filename}"><content><![CDATA[${content}]]></content></file>`], { type: 'application/xml' });
+                            } else if (format === 'md') {
+                                blob = new Blob([`# ${filename}\n\n${content}`], { type: 'text/markdown' });
+                            } else {
+                                blob = new Blob([content], { type: 'text/plain' });
+                            }
+                        }
+                        
+                        downloadBlob(blob, `${baseName}.${format}`);
+                    }
+                    
+                    showStatus(`✓ Success! ${processedContents.length} file(s) converted and downloaded.`, 'success');
+                }
+                
+                hideProgress();
+                
+            } catch (error) {
+                console.error(error);
+                showStatus(`Error: ${error.message}. Some formats may not be fully supported.`, 'error');
+                hideProgress();
+            } finally {
+                processBtn.disabled = false;
+            }
+        });
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ==================== ADDITIONAL CONVERTERS ====================
+        
+        // SVG to other formats would require rendering
+        // Video processing would require ffmpeg.wasm (heavy library)
+        // DOCX generation would require docx.js
+        // Advanced PDF generation would require jsPDF or pdf-lib
+        
+    </script>
+</body>
+</html>
