@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal File Converter & Merger</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&display=swap" rel="stylesheet">
+    <title data-lang-key="pageTitle">Universal File Converter & Merger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -25,6 +25,35 @@
             align-items: center;
             padding: 20px;
         }
+
+        /* --- Persian/RTL Support --- */
+        html[dir="rtl"] body {
+            font-family: 'Noto Naskh Arabic', 'Noto Sans', sans-serif;
+        }
+
+        html[dir="rtl"] .container {
+            text-align: right;
+        }
+
+        html[dir="rtl"] h1, html[dir="rtl"] .subtitle, html[dir="rtl"] .credit {
+            text-align: center;
+        }
+
+        html[dir="rtl"] .file-item {
+            flex-direction: row-reverse;
+        }
+
+        html[dir="rtl"] .file-item .file-type {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        html[dir="rtl"] .file-item .remove-btn {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+        /* --- End Persian/RTL Support --- */
+
 
         .container {
             background: white;
@@ -50,17 +79,39 @@
             line-height: 1.5;
         }
 
-        .settings-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        /* --- Language Selector --- */
+        .lang-selector {
+            text-align: center;
             margin-bottom: 20px;
         }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-family: 'Noto Sans', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        html[dir="rtl"] .lang-btn {
+            font-family: 'Noto Naskh Arabic', 'Noto Sans', sans-serif;
+        }
+        /* --- End Language Selector --- */
 
         .format-selector {
             background: #f8f9ff;
             padding: 20px;
             border-radius: 10px;
+            margin-bottom: 20px;
         }
 
         .format-selector label {
@@ -81,6 +132,11 @@
             color: #000000;
             background: white;
             cursor: pointer;
+            margin-bottom: 15px; /* Added margin for spacing */
+        }
+        
+        html[dir="rtl"] .format-selector select {
+            font-family: 'Noto Naskh Arabic', 'Noto Sans', sans-serif;
         }
 
         .format-selector select:focus {
@@ -318,67 +374,70 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔄 Universal File Converter</h1>
-        <p class="subtitle">Convert & merge ANY file format<br>
+        <h1 data-lang-key="mainTitle">🔄 Universal File Converter</h1>
+        <div class="lang-selector">
+            <button data-lang="en" class="lang-btn active">English</button>
+            <button data-lang="fa" class="lang-btn">فارسی</button>
+        </div>
+        <p class="subtitle" data-lang-key="subtitle">Convert & merge ANY file format<br>
         <strong>eBooks • Documents • Images • Audio • Video • Archives</strong></p>
 
         <div class="mode-toggle">
-            <button class="mode-btn active" data-mode="merge" id="mergeBtn">Merge Files</button>
-            <button class="mode-btn" data-mode="convert" id="convertBtn">Convert Individual</button>
+            <button class="mode-btn active" data-mode="merge" id="mergeBtn" data-lang-key="mergeBtn">Merge Files</button>
+            <button class="mode-btn" data-mode="convert" id="convertBtn" data-lang-key="convertBtn">Convert Individual</button>
         </div>
 
-        <div class="settings-grid">
-            <div class="format-selector">
-                <label for="outputFormat">Output Format:</label>
-                <select id="outputFormat">
-                    <optgroup label="Text & eBooks">
-                        <option value="txt">TXT - Plain Text</option>
-                        <option value="html">HTML - Web Page</option>
-                        <option value="epub">EPUB - eBook</option>
-                        <option value="pdf">PDF - Document</option>
-                        <option value="docx">DOCX - Word Document</option>
-                        <option value="md">MD - Markdown</option>
-                    </optgroup>
-                    <optgroup label="Images">
-                        <option value="png">PNG - Image</option>
-                        <option value="jpg">JPG - Image</option>
-                        <option value="webp">WEBP - Image</option>
-                        <option value="gif">GIF - Image</option>
-                        <option value="bmp">BMP - Image</option>
-                        <option value="svg">SVG - Vector</option>
-                    </optgroup>
-                    <optgroup label="Audio">
-                        <option value="mp3">MP3 - Audio</option>
-                        <option value="wav">WAV - Audio</option>
-                        <option value="ogg">OGG - Audio</option>
-                        <option value="m4a">M4A - Audio</option>
-                    </optgroup>
-                    <optgroup label="Data & Archive">
-                        <option value="json">JSON - Data</option>
-                        <option value="csv">CSV - Spreadsheet</option>
-                        <option value="xml">XML - Data</option>
-                        <option value="zip">ZIP - Archive</option>
-                    </optgroup>
-                </select>
-            </div>
-            <div class="format-selector">
-                <label for="ocrLanguage">OCR Language (for images):</label>
-                <select id="ocrLanguage">
-                    <!-- Languages will be populated by JavaScript -->
-                </select>
-            </div>
+        <div class="format-selector">
+            <label for="outputFormat" data-lang-key="outputFormatLabel">Output Format:</label>
+            <select id="outputFormat">
+                <optgroup label="Text & eBooks">
+                    <option value="txt" data-lang-key="formatTxt">TXT - Plain Text</option>
+                    <option value="html" data-lang-key="formatHtml">HTML - Web Page</option>
+                    <option value="epub" data-lang-key="formatEpub">EPUB - eBook</option>
+                    <option value="pdf" data-lang-key="formatPdf">PDF - Document</option>
+                    <option value="docx" data-lang-key="formatDocx">DOCX - Word Document</option>
+                    <option value="md" data-lang-key="formatMd">MD - Markdown</option>
+                </optgroup>
+                <optgroup label="Images">
+                    <option value="png" data-lang-key="formatPng">PNG - Image</option>
+                    <option value="jpg" data-lang-key="formatJpg">JPG - Image</option>
+                    <option value="webp" data-lang-key="formatWebp">WEBP - Image</option>
+                    <option value="gif" data-lang-key="formatGif">GIF - Image</option>
+                    <option value="bmp" data-lang-key="formatBmp">BMP - Image</option>
+                    <option value="svg" data-lang-key="formatSvg">SVG - Vector</option>
+                </optgroup>
+                <optgroup label="Audio">
+                    <option value="mp3" data-lang-key="formatMp3">MP3 - Audio</option>
+                    <option value="wav" data-lang-key="formatWav">WAV - Audio</option>
+                    <option value="ogg" data-lang-key="formatOgg">OGG - Audio</option>
+                    <option value="m4a" data-lang-key="formatM4a">M4A - Audio</option>
+                </optgroup>
+                <optgroup label="Data & Archive">
+                    <option value="json" data-lang-key="formatJson">JSON - Data</option>
+                    <option value="csv" data-lang-key="formatCsv">CSV - Spreadsheet</option>
+                    <option value="xml" data-lang-key="formatXml">XML - Data</option>
+                    <option value="zip" data-lang-key="formatZip">ZIP - Archive</option>
+                </optgroup>
+            </select>
+
+            <!-- OCR Language Selector -->
+            <label for="ocrLanguage" data-lang-key="ocrLangLabel">OCR Language (for images):</label>
+            <select id="ocrLanguage">
+                <option value="eng" data-lang-key="ocrLangEng">English</option>
+                <option value="fas" data-lang-key="ocrLangFa">Persian (فارسی)</option>
+            </select>
         </div>
 
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
-            <div class="upload-text">Click to select files</div>
-            <div class="upload-hint">or drag and drop them here<br>Accepts almost ANY file format!</div>
+            <div class="upload-text" data-lang-key="uploadText">Click to select files</div>
+            <div class="upload-hint" data-lang-key="uploadHint">or drag and drop them here<br>Accepts almost ANY file format!</div>
             <input type="file" id="fileInput" multiple>
         </div>
 
         <div class="file-list" id="fileList"></div>
 
-        <button class="convert-btn" id="processBtn" disabled>Convert & Process Files</button>
+        <button class="convert-btn" id="processBtn" disabled data-lang-key="processBtn">Convert & Process Files</button>
 
         <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
@@ -387,34 +446,227 @@
         <div class="status" id="status"></div>
 
         <div class="supported-formats">
-            <strong>📋 Supported Input Formats:</strong><br>
-            <strong>eBooks:</strong> EPUB, MOBI, AZW, AZW3, PDF<br>
-            <strong>Documents:</strong> PDF, DOCX, DOC, TXT, RTF, ODT, HTML, XML<br>
-            <strong>Images:</strong> JPG, PNG, GIF, BMP, WEBP, SVG, TIFF (with OCR support)<br>
-            <strong>Audio:</strong> MP3, WAV, OGG, M4A, FLAC, AAC, WMA<br>
-            <strong>Video:</strong> MP4, WEBM, AVI, MOV (audio extraction)<br>
-            <strong>Archives:</strong> ZIP, RAR (read), TAR, 7Z (read)<br>
-            <strong>Data:</strong> JSON, CSV, XML, YAML
+            <strong data-lang-key="supportedTitle">📋 Supported Input Formats:</strong><br>
+            <strong data-lang-key="supportedEbooks">eBooks:</strong> EPUB, MOBI, AZW, AZW3, PDF<br>
+            <strong data-lang-key="supportedDocs">Documents:</strong> PDF, DOCX, DOC, TXT, RTF, ODT, HTML, XML<br>
+            <strong data-lang-key="supportedImages">Images:</strong> JPG, PNG, GIF, BMP, WEBP, SVG, TIFF (with OCR support)<br>
+            <strong data-lang-key="supportedAudio">Audio:</strong> MP3, WAV, OGG, M4A, FLAC, AAC, WMA<br>
+            <strong data-lang-key="supportedVideo">Video:</strong> MP4, WEBM, AVI, MOV (audio extraction)<br>
+            <strong data-lang-key="supportedArchives">Archives:</strong> ZIP, RAR (read), TAR, 7Z (read)<br>
+            <strong data-lang-key="supportedData">Data:</strong> JSON, CSV, XML, YAML
         </div>
 
         <div class="footer">
-            <p><strong>Privacy:</strong> All files are processed locally in your browser. Nothing is uploaded to any server. Your files never leave your device.</p>
+            <p><strong data-lang-key="footerPrivacyTitle">Privacy:</strong> <span data-lang-key="footerPrivacyText">All files are processed locally in your browser. Nothing is uploaded to any server. Your files never leave your device.</span></p>
             
-            <p><strong>Limitations:</strong> Browser-based conversion has limitations. DRM-protected files cannot be converted. Some complex conversions (like video transcoding) are simplified. OCR processing may be slow for large images. Audio/video conversions use browser APIs and may have format limitations. For professional-grade conversions, use dedicated software.</p>
+            <p><strong data-lang-key="footerLimitsTitle">Limitations:</strong> <span data-lang-key="footerLimitsText">Browser-based conversion has limitations. DRM-protected files cannot be converted. Some complex conversions (like video transcoding) are simplified. OCR processing may be slow for large images. Audio/video conversions use browser APIs and may have format limitations. For professional-grade conversions, use dedicated software.</span></p>
             
-            <p><strong>Features:</strong> Automatic multi-language OCR for images, PDF text extraction, audio format conversion, image format conversion, document merging, archive extraction, metadata preservation where possible, and batch processing.</p>
+            <p><strong data-lang-key="footerFeaturesTitle">Features:</strong> <span data-lang-key="footerFeaturesText">Automatic OCR for images, PDF text extraction, audio format conversion, image format conversion, document merging, archive extraction, metadata preservation where possible, and batch processing.</span></p>
             
-            <p><strong>Free to use.</strong> No ads, no tracking, no data collection. Unlimited files and conversions.</p>
+            <p><strong data-lang-key="footerFreeTitle">Free to use.</strong> <span data-lang-key="footerFreeText">No ads, no tracking, no data collection. Unlimited files and conversions.</span></p>
             
-            <p><strong>Found a bug?</strong> Report it on <a href="https://www.reddit.com/user/ArashTheUnknown" target="_blank">Reddit</a></p>
+            <p><span data-lang-key="footerBug">Found a bug?</span> <span data-lang-key="footerReport">Report it on</span> <a href="https://www.reddit.com/user/ArashTheUnknown" target="_blank">Reddit</a></p>
             
-            <div class="credit">Made by Noar A.</div>
+            <div class="credit" data-lang-key="credit">Made by Noar A.</div>
         </div>
     </div>
 
     <script>
+        // ==================== I18N & TRANSLATION ====================
+        const translations = {
+            en: {
+                pageTitle: "Universal File Converter & Merger",
+                mainTitle: "🔄 Universal File Converter",
+                subtitle: "Convert & merge ANY file format<br><strong>eBooks • Documents • Images • Audio • Video • Archives</strong>",
+                mergeBtn: "Merge Files",
+                convertBtn: "Convert Individual",
+                outputFormatLabel: "Output Format:",
+                ocrLangLabel: "OCR Language (for images):",
+                ocrLangEng: "English",
+                ocrLangFa: "Persian (فارسی)",
+                formatTxt: "TXT - Plain Text",
+                formatHtml: "HTML - Web Page",
+                formatEpub: "EPUB - eBook",
+                formatPdf: "PDF - Document",
+                formatDocx: "DOCX - Word Document",
+                formatMd: "MD - Markdown",
+                formatPng: "PNG - Image",
+                formatJpg: "JPG - Image",
+                formatWebp: "WEBP - Image",
+                formatGif: "GIF - Image",
+                formatBmp: "BMP - Image",
+                formatSvg: "SVG - Vector",
+                formatMp3: "MP3 - Audio",
+                formatWav: "WAV - Audio",
+                formatOgg: "OGG - Audio",
+                formatM4a: "M4A - Audio",
+                formatJson: "JSON - Data",
+                formatCsv: "CSV - Spreadsheet",
+                formatXml: "XML - Data",
+                formatZip: "ZIP - Archive",
+                optgroupText: "Text & eBooks",
+                optgroupImages: "Images",
+                optgroupAudio: "Audio",
+                optgroupData: "Data & Archive",
+                uploadText: "Click to select files",
+                uploadHint: "or drag and drop them here<br>Accepts almost ANY file format!",
+                processBtn: "Convert & Process Files",
+                supportedTitle: "📋 Supported Input Formats:",
+                supportedEbooks: "eBooks:",
+                supportedDocs: "Documents:",
+                supportedImages: "Images:",
+                supportedAudio: "Audio:",
+                supportedVideo: "Video:",
+                supportedArchives: "Archives:",
+                supportedData: "Data:",
+                footerPrivacyTitle: "Privacy:",
+                footerPrivacyText: "All files are processed locally in your browser. Nothing is uploaded to any server. Your files never leave your device.",
+                footerLimitsTitle: "Limitations:",
+                footerLimitsText: "Browser-based conversion has limitations. DRM-protected files cannot be converted. Some complex conversions (like video transcoding) are simplified. OCR processing may be slow for large images. Audio/video conversions use browser APIs and may have format limitations. For professional-grade conversions, use dedicated software.",
+                footerFeaturesTitle: "Features:",
+                footerFeaturesText: "Automatic OCR for images, PDF text extraction, audio format conversion, image format conversion, document merging, archive extraction, metadata preservation where possible, and batch processing.",
+                footerFreeTitle: "Free to use.",
+                footerFreeText: "No ads, no tracking, no data collection. Unlimited files and conversions.",
+                footerBug: "Found a bug?",
+                footerReport: "Report it on",
+                credit: "Made by Noar A.",
+                remove: "Remove",
+                statusOcr: "Running OCR on image... This may take a moment.",
+                statusProcessing: "Processing files...",
+                statusProcessingFile: "Processing: {fileName} ({current}/{total})",
+                statusGenerating: "Generating output file...",
+                statusPdfWarning: "⚠️ PDF generation not fully supported. Generated HTML instead.",
+                statusSuccessMerge: "✓ Success! Merged file downloaded as {outputFilename}",
+                statusSuccessConvert: "✓ Success! {count} file(s) converted and downloaded.",
+                statusError: "Error: {message}. Some formats may not be fully supported.",
+                fileType_ebook: "ebook",
+                fileType_document: "document",
+                fileType_image: "image",
+                fileType_audio: "audio",
+                fileType_video: "video",
+                fileType_archive: "archive",
+                fileType_data: "data",
+                fileType_unknown: "unknown",
+            },
+            fa: {
+                pageTitle: "مبدل و ادغام‌کننده جهانی فایل",
+                mainTitle: "🔄 مبدل جهانی فایل",
+                subtitle: "تبدیل و ادغام هر نوع فایل<br><strong>کتاب‌های الکترونیکی • اسناد • تصاویر • صوتی • تصویری • آرشیوها</strong>",
+                mergeBtn: "ادغام فایل‌ها",
+                convertBtn: "تبدیل تکی",
+                outputFormatLabel: "فرمت خروجی:",
+                ocrLangLabel: "زبان OCR (برای تصاویر):",
+                ocrLangEng: "انگلیسی",
+                ocrLangFa: "فارسی",
+                formatTxt: "TXT - متن ساده",
+                formatHtml: "HTML - صفحه وب",
+                formatEpub: "EPUB - کتاب الکترونیکی",
+                formatPdf: "PDF - سند",
+                formatDocx: "DOCX - سند ورد",
+                formatMd: "MD - مارک‌داون",
+                formatPng: "PNG - تصویر",
+                formatJpg: "JPG - تصویر",
+                formatWebp: "WEBP - تصویر",
+                formatGif: "GIF - تصویر",
+                formatBmp: "BMP - تصویر",
+                formatSvg: "SVG - وکتور",
+                formatMp3: "MP3 - صوتی",
+                formatWav: "WAV - صوتی",
+                formatOgg: "OGG - صوتی",
+                formatM4a: "M4A - صوتی",
+                formatJson: "JSON - داده",
+                formatCsv: "CSV - صفحه گسترده",
+                formatXml: "XML - داده",
+                formatZip: "ZIP - آرشیو",
+                optgroupText: "متن و کتاب‌های الکترونیکی",
+                optgroupImages: "تصاویر",
+                optgroupAudio: "صوتی",
+                optgroupData: "داده و آرشیو",
+                uploadText: "برای انتخاب فایل‌ها کلیک کنید",
+                uploadHint: "یا فایل‌ها را به اینجا بکشید<br>تقریباً هر نوع فایلی پذیرفته می‌شود!",
+                processBtn: "تبدیل و پردازش فایل‌ها",
+                supportedTitle: "📋 فرمت‌های ورودی پشتیبانی شده:",
+                supportedEbooks: "کتاب‌های الکترونیکی:",
+                supportedDocs: "اسناد:",
+                supportedImages: "تصاویر:",
+                supportedAudio: "صوتی:",
+                supportedVideo: "تصویری:",
+                supportedArchives: "آرشیوها:",
+                supportedData: "داده:",
+                footerPrivacyTitle: "حریم خصوصی:",
+                footerPrivacyText: "تمام فایل‌ها به صورت محلی در مرورگر شما پردازش می‌شوند. هیچ فایلی روی هیچ سروری آپلود نمی‌شود. فایل‌های شما هرگز دستگاه شما را ترک نمی‌کنند.",
+                footerLimitsTitle: "محدودیت‌ها:",
+                footerLimitsText: "تبدیل مبتنی بر مرورگر محدودیت‌هایی دارد. فایل‌های محافظت شده با DRM قابل تبدیل نیستند. برخی تبدیل‌های پیچیده (مانند تبدیل فرمت ویدیو) ساده‌سازی شده‌اند. پردازش OCR برای تصاویر بزرگ ممکن است کند باشد. تبدیل‌های صوتی/تصویری از APIهای مرورگر استفاده می‌کنند و ممکن است محدودیت فرمت داشته باشند. برای تبدیل‌های حرفه‌ای، از نرم‌افزارهای اختصاصی استفاده کنید.",
+                footerFeaturesTitle: "ویژگی‌ها:",
+                footerFeaturesText: "OCR خودکار برای تصاویر، استخراج متن از PDF، تبدیل فرمت صوتی، تبدیل فرمت تصویر، ادغام اسناد، استخراج آرشیو، حفظ فراداده در صورت امکان، و پردازش دسته‌ای.",
+                footerFreeTitle: "استفاده رایگان.",
+                footerFreeText: "بدون تبلیغات، بدون ردیابی، بدون جمع‌آوری داده. تعداد نامحدود فایل و تبدیل.",
+                footerBug: "باگی پیدا کردید؟",
+                footerReport: "آن را در",
+                credit: "ساخته شده توسط Noar A.",
+                remove: "حذف",
+                statusOcr: "در حال اجرای OCR روی تصویر... این ممکن است کمی طول بکشد.",
+                statusProcessing: "در حال پردازش فایل‌ها...",
+                statusProcessingFile: "در حال پردازش: {fileName} ({current} از {total})",
+                statusGenerating: "در حال ساخت فایل خروجی...",
+                statusPdfWarning: "⚠️ ساخت PDF به طور کامل پشتیبانی نمی‌شود. به جای آن فایل HTML ساخته شد.",
+                statusSuccessMerge: "✓ موفقیت! فایل ادغام شده با نام {outputFilename} دانلود شد.",
+                statusSuccessConvert: "✓ موفقیت! تعداد {count} فایل تبدیل و دانلود شد.",
+                statusError: "خطا: {message}. برخی فرمت‌ها ممکن است به طور کامل پشتیبانی نشوند.",
+                fileType_ebook: "کتاب",
+                fileType_document: "سند",
+                fileType_image: "تصویر",
+                fileType_audio: "صوتی",
+                fileType_video: "ویدیو",
+                fileType_archive: "آرشیو",
+                fileType_data: "داده",
+                fileType_unknown: "ناشناخته",
+            }
+        };
+
+        let currentLang = 'en';
+
+        function t(key, params = {}) {
+            let str = translations[currentLang][key] || key;
+            for (const p in params) {
+                str = str.replace(new RegExp(`\\{${p}\\}`, 'g'), params[p]);
+            }
+            return str;
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                el.innerHTML = t(key);
+            });
+
+            // Update optgroup labels
+            const optgroups = document.querySelectorAll('#outputFormat optgroup');
+            optgroups[0].label = t('optgroupText');
+            optgroups[1].label = t('optgroupImages');
+            optgroups[2].label = t('optgroupAudio');
+            optgroups[3].label = t('optgroupData');
+
+            // Update UI state
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+            updateFileList();
+        }
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setLanguage(btn.dataset.lang);
+            });
+        });
+        // ==========================================================
+
         // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -424,50 +676,9 @@
         const progressBar = document.getElementById('progressBar');
         const progressFill = document.getElementById('progressFill');
         const outputFormat = document.getElementById('outputFormat');
+        const ocrLanguage = document.getElementById('ocrLanguage');
         const mergeBtn = document.getElementById('mergeBtn');
         const convertBtn = document.getElementById('convertBtn');
-        const ocrLanguageSelect = document.getElementById('ocrLanguage');
-
-        // NEW: Complete list of Tesseract.js languages
-        const TESSERACT_LANGUAGES = {
-            'afr': 'Afrikaans', 'amh': 'Amharic', 'ara': 'Arabic', 'asm': 'Assamese', 'aze': 'Azerbaijani',
-            'aze_cyrl': 'Azerbaijani - Cyrillic', 'bel': 'Belarusian', 'ben': 'Bengali', 'bod': 'Tibetan',
-            'bos': 'Bosnian', 'bre': 'Breton', 'bul': 'Bulgarian', 'cat': 'Catalan; Valencian', 'ceb': 'Cebuano',
-            'ces': 'Czech', 'chi_sim': 'Chinese - Simplified', 'chi_tra': 'Chinese - Traditional', 'chr': 'Cherokee',
-            'cos': 'Corsican', 'cym': 'Welsh', 'dan': 'Danish', 'deu': 'German', 'dzo': 'Dzongkha',
-            'ell': 'Greek, Modern (1453-)', 'eng': 'English', 'enm': 'English, Middle (1100-1500)', 'epo': 'Esperanto',
-            'est': 'Estonian', 'eus': 'Basque', 'fao': 'Faroese', 'fas': 'Persian', 'fil': 'Filipino', 'fin': 'Finnish',
-            'fra': 'French', 'frk': 'German Fraktur', 'frm': 'French, Middle (ca. 1400-1600)', 'fry': 'Western Frisian',
-            'gla': 'Scottish Gaelic', 'gle': 'Irish', 'glg': 'Galician', 'grc': 'Greek, Ancient (-1453)', 'guj': 'Gujarati',
-            'hat': 'Haitian; Haitian Creole', 'heb': 'Hebrew', 'hin': 'Hindi', 'hrv': 'Croatian', 'hun': 'Hungarian',
-            'hye': 'Armenian', 'iku': 'Inuktitut', 'ind': 'Indonesian', 'isl': 'Icelandic', 'ita': 'Italian',
-            'ita_old': 'Italian - Old', 'jav': 'Javanese', 'jpn': 'Japanese', 'kan': 'Kannada', 'kat': 'Georgian',
-            'kat_old': 'Georgian - Old', 'kaz': 'Kazakh', 'khm': 'Central Khmer', 'kir': 'Kirghiz; Kyrgyz', 'kmr': 'Kurmanji',
-            'kor': 'Korean', 'kor_vert': 'Korean (vertical)', 'lao': 'Lao', 'lat': 'Latin', 'lav': 'Latvian',
-            'lit': 'Lithuanian', 'ltz': 'Luxembourgish', 'mal': 'Malayalam', 'mar': 'Marathi', 'mkd': 'Macedonian',
-            'mlt': 'Maltese', 'mon': 'Mongolian', 'mri': 'Maori', 'msa': 'Malay', 'mya': 'Burmese', 'nep': 'Nepali',
-            'nld': 'Dutch; Flemish', 'nor': 'Norwegian', 'oci': 'Occitan (post 1500)', 'ori': 'Oriya', 'pan': 'Panjabi; Punjabi',
-            'pol': 'Polish', 'por': 'Portuguese', 'pus': 'Pushto; Pashto', 'que': 'Quechua', 'ron': 'Romanian; Moldavian',
-            'rus': 'Russian', 'san': 'Sanskrit', 'sin': 'Sinhala; Sinhalese', 'slk': 'Slovak', 'slv': 'Slovenian',
-            'snd': 'Sindhi', 'spa': 'Spanish; Castilian', 'spa_old': 'Spanish; Castilian - Old', 'sqi': 'Albanian',
-            'srp': 'Serbian', 'srp_latn': 'Serbian - Latin', 'sun': 'Sundanese', 'swa': 'Swahili', 'swe': 'Swedish',
-            'syr': 'Syriac', 'tam': 'Tamil', 'tat': 'Tatar', 'tel': 'Telugu', 'tgk': 'Tajik', 'tgl': 'Tagalog',
-            'tha': 'Thai', 'tir': 'Tigrinya', 'ton': 'Tonga', 'tur': 'Turkish', 'uig': 'Uighur; Uyghur', 'ukr': 'Ukrainian',
-            'urd': 'Urdu', 'uzb': 'Uzbek', 'uzb_cyrl': 'Uzbek - Cyrillic', 'vie': 'Vietnamese', 'yid': 'Yiddish', 'yor': 'Yoruba'
-        };
-
-        // NEW: Dynamically populate the language dropdown
-        function populateLanguageDropdown() {
-            for (const code in TESSERACT_LANGUAGES) {
-                const option = document.createElement('option');
-                option.value = code;
-                option.textContent = TESSERACT_LANGUAGES[code];
-                ocrLanguageSelect.appendChild(option);
-            }
-            ocrLanguageSelect.value = 'eng'; // Set English as default
-        }
-        populateLanguageDropdown();
-
 
         let selectedFiles = [];
         let processingMode = 'merge'; // 'merge' or 'convert'
@@ -539,11 +750,12 @@
             selectedFiles.forEach((file, index) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
-                const type = getFileType(file.name);
+                const typeKey = getFileType(file.name);
+                const typeDisplay = t('fileType_' + typeKey);
                 fileItem.innerHTML = `
                     <span class="file-name">${file.name}</span>
-                    <span class="file-type">${type}</span>
-                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                    <span class="file-type">${typeDisplay}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">${t('remove')}</button>
                 `;
                 fileList.appendChild(fileItem);
             });
@@ -559,9 +771,9 @@
             processBtn.disabled = selectedFiles.length === 0;
         }
 
-        function showStatus(message, type) {
+        function showStatus(message, type, isKey = false, params = {}) {
             status.className = 'status ' + type;
-            status.textContent = message;
+            status.textContent = isKey ? t(message, params) : message;
         }
 
         function updateProgress(percent) {
@@ -619,11 +831,11 @@
         }
 
         async function extractTextFromImage(file) {
-            const selectedLang = ocrLanguageSelect.value;
-            showStatus(`Running OCR with ${TESSERACT_LANGUAGES[selectedLang]}... This may take a moment.`, 'processing');
-            const result = await Tesseract.recognize(file, selectedLang, {
+            const lang = ocrLanguage.value; // Get selected OCR language
+            showStatus('statusOcr', 'processing', true);
+            const result = await Tesseract.recognize(file, lang, {
                 logger: m => {
-                    if (m.status === 'recognizing text') {
+                    if (m.status === 'recognizing text' || m.status === 'downloading') {
                         updateProgress(m.progress * 100);
                     }
                 }
@@ -677,7 +889,7 @@
                 switch(type) {
                     case 'ebook':
                         if (ext === 'epub') return await extractTextFromEpub(file);
-                        return await extractTextFromTxt(file);
+                        return await extractTextFromTxt(file); // Fallback for MOBI/AZW
                     case 'document':
                         if (ext === 'pdf') return await extractTextFromPdf(file);
                         if (ext === 'html' || ext === 'htm') return await extractTextFromHtml(file);
@@ -715,8 +927,11 @@
                         ctx.drawImage(img, 0, 0);
                         
                         const mimeTypes = {
-                            'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
-                            'webp': 'image/webp', 'bmp': 'image/bmp'
+                            'png': 'image/png',
+                            'jpg': 'image/jpeg',
+                            'jpeg': 'image/jpeg',
+                            'webp': 'image/webp',
+                            'bmp': 'image/bmp'
                         };
                         
                         canvas.toBlob((blob) => {
@@ -734,6 +949,8 @@
         // ==================== AUDIO CONVERSION ====================
         
         async function convertAudio(file, targetFormat) {
+            // Browser-based audio conversion is limited
+            // This is a placeholder - real conversion would need WebAssembly (ffmpeg.wasm)
             return new Blob([await file.arrayBuffer()], { type: `audio/${targetFormat}` });
         }
 
@@ -742,42 +959,96 @@
         function generateTxt(contents) {
             let output = '';
             contents.forEach(({ filename, content }) => {
-                output += `\n\n${'='.repeat(80)}\nFILE: ${filename}\n${'='.repeat(80)}\n\n${content}\n\n`;
+                output += `\n\n${'='.repeat(80)}\n`;
+                output += `FILE: ${filename}\n`;
+                output += `${'='.repeat(80)}\n\n`;
+                output += content + '\n\n';
             });
             return new Blob([output], { type: 'text/plain' });
         }
 
         function generateHtml(contents) {
-            let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Converted Files</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6;color:#333;}.file-section{border-top:3px solid #333;margin:40px 0;padding-top:20px;}.file-title{font-size:1.5em;font-weight:bold;margin-bottom:20px;}.file-content{text-align:justify;white-space:pre-wrap;}</style></head><body><h1>Converted Files</h1>`;
+            let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converted Files</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+        .file-section { border-top: 3px solid #333; margin: 40px 0; padding-top: 20px; }
+        .file-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; }
+        .file-content { text-align: justify; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Converted Files</h1>
+`;
             contents.forEach(({ filename, content }) => {
-                html += `<div class="file-section"><div class="file-title">${filename}</div><div class="file-content">${content}</div></div>\n`;
+                html += `    <div class="file-section">
+        <div class="file-title">${filename}</div>
+        <div class="file-content">${content}</div>
+    </div>\n`;
             });
-            html += `</body></html>`;
+            html += `</body>\n</html>`;
             return new Blob([html], { type: 'text/html' });
         }
 
         async function generateEpub(contents) {
             const zip = new JSZip();
             zip.file('mimetype', 'application/epub+zip');
-            zip.folder('META-INF').file('container.xml', `<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`);
+            
+            zip.folder('META-INF').file('container.xml', `<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`);
+            
             const oebps = zip.folder('OEBPS');
             let manifestItems = '';
             let spineItems = '';
+            
             contents.forEach((_, index) => {
-                manifestItems += `<item id="chapter${index}" href="chapter${index}.xhtml" media-type="application/xhtml+xml"/>\n`;
-                spineItems += `<itemref idref="chapter${index}"/>\n`;
+                manifestItems += `    <item id="chapter${index}" href="chapter${index}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                spineItems += `    <itemref idref="chapter${index}"/>\n`;
             });
-            oebps.file('content.opf', `<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">converted-files-${Date.now()}</dc:identifier><dc:title>Converted Files</dc:title><dc:language>en</dc:language></metadata><manifest>${manifestItems}</manifest><spine>${spineItems}</spine></package>`);
+            
+            oebps.file('content.opf', `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">converted-files-${Date.now()}</dc:identifier>
+    <dc:title>Converted Files</dc:title>
+    <dc:language>en</dc:language>
+    <dc:creator>Noar A.</dc:creator>
+  </metadata>
+  <manifest>
+${manifestItems}  </manifest>
+  <spine>
+${spineItems}  </spine>
+</package>`);
+            
             contents.forEach(({ filename, content }, index) => {
-                const chapterContent = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${filename}</title></head><body><h1>${filename}</h1><pre>${content}</pre></body></html>`;
+                const chapterContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>${filename}</title></head>
+<body>
+  <h1>${filename}</h1>
+  <pre>${content}</pre>
+</body>
+</html>`;
                 oebps.file(`chapter${index}.xhtml`, chapterContent);
             });
+            
             return await zip.generateAsync({ type: 'blob' });
         }
 
         function generateJson(contents) {
             const data = {};
-            contents.forEach(({ filename, content }) => { data[filename] = content; });
+            contents.forEach(({ filename, content }) => {
+                data[filename] = content;
+            });
             return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         }
 
@@ -792,7 +1063,9 @@
 
         async function generateZip(contents) {
             const zip = new JSZip();
-            contents.forEach(({ filename, content }) => { zip.file(filename, content); });
+            contents.forEach(({ filename, content }) => {
+                zip.file(filename, content);
+            });
             return await zip.generateAsync({ type: 'blob' });
         }
 
@@ -802,35 +1075,43 @@
             if (selectedFiles.length === 0) return;
 
             const format = outputFormat.value;
-            showStatus('Processing files...', 'processing');
+            showStatus('statusProcessing', 'processing', true);
             updateProgress(0);
             processBtn.disabled = true;
 
             try {
                 let processedContents = [];
+                
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
-                    showStatus(`Processing: ${file.name} (${i + 1}/${selectedFiles.length})`, 'processing');
+                    showStatus('statusProcessingFile', 'processing', true, { fileName: file.name, current: i + 1, total: selectedFiles.length });
                     updateProgress(((i) / selectedFiles.length) * 100);
+                    
                     const fileType = getFileType(file.name);
                     let content;
+                    
                     if (fileType === 'image' && ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'].includes(format)) {
                         content = await convertImage(file, format);
-                    } else if (fileType === 'audio' && ['mp3', 'wav', 'ogg', 'm4a'].includes(format)) {
+                    }
+                    else if (fileType === 'audio' && ['mp3', 'wav', 'ogg', 'm4a'].includes(format)) {
                         content = await convertAudio(file, format);
-                    } else if (['txt', 'html', 'epub', 'pdf', 'md', 'json', 'csv', 'xml'].includes(format)) {
-                        content = await extractFromFile(file);
-                    } else {
+                    }
+                    else if (['txt', 'html', 'epub', 'pdf', 'md', 'json', 'csv', 'xml'].includes(format)) {
                         content = await extractFromFile(file);
                     }
+                    else {
+                        content = await extractFromFile(file);
+                    }
+                    
                     processedContents.push({ filename: file.name, content: content });
                 }
 
                 updateProgress(100);
-                showStatus('Generating output file...', 'processing');
+                showStatus('statusGenerating', 'processing', true);
+                
+                let outputBlob, outputFilename;
                 
                 if (processingMode === 'merge') {
-                    let outputBlob, outputFilename;
                     switch(format) {
                         case 'txt': outputBlob = generateTxt(processedContents); outputFilename = 'merged_files.txt'; break;
                         case 'html': outputBlob = generateHtml(processedContents); outputFilename = 'merged_files.html'; break;
@@ -841,23 +1122,34 @@
                         case 'md':
                             let markdown = '# Merged Files\n\n';
                             processedContents.forEach(({ filename, content }) => { markdown += `## ${filename}\n\n${content}\n\n---\n\n`; });
-                            outputBlob = new Blob([markdown], { type: 'text/markdown' }); outputFilename = 'merged_files.md'; break;
+                            outputBlob = new Blob([markdown], { type: 'text/markdown' });
+                            outputFilename = 'merged_files.md';
+                            break;
                         case 'xml':
                             let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<files>\n';
                             processedContents.forEach(({ filename, content }) => { xml += `  <file name="${filename}">\n    <content><![CDATA[${content}]]></content>\n  </file>\n`; });
                             xml += '</files>';
-                            outputBlob = new Blob([xml], { type: 'application/xml' }); outputFilename = 'merged_files.xml'; break;
+                            outputBlob = new Blob([xml], { type: 'application/xml' });
+                            outputFilename = 'merged_files.xml';
+                            break;
                         case 'pdf':
-                            outputBlob = generateHtml(processedContents); outputFilename = 'merged_files.html';
-                            showStatus('⚠️ PDF generation not fully supported. Generated HTML instead.', 'processing'); break;
-                        default: outputBlob = generateTxt(processedContents); outputFilename = 'merged_files.txt';
+                            outputBlob = generateHtml(processedContents);
+                            outputFilename = 'merged_files.html';
+                            showStatus('statusPdfWarning', 'processing', true);
+                            break;
+                        default:
+                            outputBlob = generateTxt(processedContents);
+                            outputFilename = 'merged_files.txt';
                     }
+                    
                     downloadBlob(outputBlob, outputFilename);
-                    showStatus(`✓ Success! Merged file downloaded as ${outputFilename}`, 'success');
+                    showStatus('statusSuccessMerge', 'success', true, { outputFilename });
+                    
                 } else {
                     for (let i = 0; i < processedContents.length; i++) {
                         const { filename, content } = processedContents[i];
                         const baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
+                        
                         let blob;
                         if (content instanceof Blob) {
                             blob = content;
@@ -868,14 +1160,18 @@
                             else if (format === 'md') blob = new Blob([`# ${filename}\n\n${content}`], { type: 'text/markdown' });
                             else blob = new Blob([content], { type: 'text/plain' });
                         }
+                        
                         downloadBlob(blob, `${baseName}.${format}`);
                     }
-                    showStatus(`✓ Success! ${processedContents.length} file(s) converted and downloaded.`, 'success');
+                    
+                    showStatus('statusSuccessConvert', 'success', true, { count: processedContents.length });
                 }
+                
                 hideProgress();
+                
             } catch (error) {
                 console.error(error);
-                showStatus(`Error: ${error.message}. Some formats may not be fully supported.`, 'error');
+                showStatus('statusError', 'error', true, { message: error.message });
                 hideProgress();
             } finally {
                 processBtn.disabled = false;
@@ -892,6 +1188,11 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+        
+        // Initialize the page with the default language
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage('en');
+        });
     </script>
 </body>
-</html>
+                </html>
